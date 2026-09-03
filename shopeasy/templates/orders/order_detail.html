@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.id }} — ShopEasy{% endblock %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;">
+    <h1 class="section-title" style="margin-bottom: 0;">Order #{{ order.id }}</h1>
+    <a href="{% url 'orders:order_invoice' order.id %}" target="_blank" class="btn btn-outline btn-sm">🧾 Download Invoice</a>
+</div>
+
+<p style="margin-bottom: 30px; color: var(--gray); font-size: 14px;">
+    Placed on {{ order.created_at|date:"d M Y, h:i A" }}
+</p>
+
+{% if order.status != 'cancelled' %}
+<div class="order-timeline reveal">
+    <div class="timeline-track">
+        <div class="timeline-step {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}done{% endif %}">
+            <span class="timeline-dot">📝</span>
+            <span class="timeline-label">Pending</span>
+        </div>
+        <div class="timeline-line {% if order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}filled{% endif %}"></div>
+        <div class="timeline-step {% if order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}done{% endif %}">
+            <span class="timeline-dot">✅</span>
+            <span class="timeline-label">Confirmed</span>
+        </div>
+        <div class="timeline-line {% if order.status == 'shipped' or order.status == 'delivered' %}filled{% endif %}"></div>
+        <div class="timeline-step {% if order.status == 'shipped' or order.status == 'delivered' %}done{% endif %}">
+            <span class="timeline-dot">🚚</span>
+            <span class="timeline-label">Shipped</span>
+        </div>
+        <div class="timeline-line {% if order.status == 'delivered' %}filled{% endif %}"></div>
+        <div class="timeline-step {% if order.status == 'delivered' %}done{% endif %}">
+            <span class="timeline-dot">📦</span>
+            <span class="timeline-label">Delivered</span>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="message error" style="margin-bottom: 24px;">This order has been cancelled.</div>
+{% endif %}
+
+<table class="cart-table">
+    <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead>
+    <tbody>
+        {% for item in order.items.all %}
+        <tr>
+            <td>{{ item.product_name }}</td>
+            <td>₹{{ item.price_at_purchase }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>₹{{ item.subtotal }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="cart-summary">
+    <div class="row"><span>Subtotal</span><span>₹{{ order.subtotal }}</span></div>
+    {% if order.discount_amount %}
+    <div class="row"><span>Discount</span><span>-₹{{ order.discount_amount }}</span></div>
+    {% endif %}
+    <div class="row total"><span>Total</span><span>₹{{ order.total }}</span></div>
+</div>
+
+<div class="form-card" style="margin-top: 30px;">
+    <h2 style="font-size: 16px; margin-bottom: 12px;">Shipping Details</h2>
+    <p>{{ order.shipping_address }}</p>
+    <p>{{ order.shipping_city }} {{ order.shipping_pincode }}</p>
+</div>
+
+{% if order.status == 'pending' %}
+<form action="{% url 'orders:order_cancel' order.id %}" method="post" style="margin-top: 20px;" onsubmit="return confirm('Cancel this order?');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline">Cancel Order</button>
+</form>
+{% endif %}
+
+{% endblock %}

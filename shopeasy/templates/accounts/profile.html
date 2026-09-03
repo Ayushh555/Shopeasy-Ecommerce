@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — ShopEasy{% endblock %}
+{% block content %}
+
+<h1 class="section-title">My Profile</h1>
+
+<div class="form-card" style="margin-bottom: 30px;">
+    <h1 style="font-size: 18px;">Account Details</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+    </form>
+</div>
+
+<h2 class="section-title">My Orders</h2>
+{% for order in orders|slice:":5" %}
+<div class="order-card">
+    <div style="display: flex; justify-content: space-between;">
+        <strong>Order #{{ order.id }}</strong>
+        <span class="status-badge status-{{ order.status }}">{{ order.status }}</span>
+    </div>
+    <p>₹{{ order.total }} • {{ order.created_at|date:"d M Y" }}</p>
+    <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-outline btn-sm">View Details</a>
+</div>
+{% empty %}
+<p style="color: var(--gray);">No orders yet.</p>
+{% endfor %}
+{% if orders.count > 5 %}
+<a href="{% url 'orders:order_list' %}">View all orders →</a>
+{% endif %}
+
+{% endblock %}

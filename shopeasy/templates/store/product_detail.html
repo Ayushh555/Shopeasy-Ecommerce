@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} — ShopEasy{% endblock %}
+{% block content %}
+
+<div class="product-detail">
+    <div class="product-detail-img">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% else %}
+            No Image Available
+        {% endif %}
+    </div>
+
+    <div>
+        <span class="product-brand">{{ product.brand|default:"—" }} • {{ product.category.name }}</span>
+        <h1>{{ product.name }}</h1>
+        <p class="review-rating">★ {{ product.average_rating }} ({{ product.review_count }} reviews)</p>
+        <div class="price-row">₹{{ product.price }}</div>
+
+        <div class="stock-row">
+            {% if product.in_stock %}
+                <span style="color: var(--success); font-weight: 600;">In Stock ({{ product.stock }} available)</span>
+            {% else %}
+                <span class="badge out">Out of Stock</span>
+            {% endif %}
+        </div>
+
+        <p>{{ product.description|linebreaks }}</p>
+
+        {% if user.is_authenticated %}
+        <div class="qty-row">
+            <button type="button" class="btn btn-outline btn-sm qty-minus">-</button>
+            <input type="number" name="quantity" value="1" min="1" class="qty-input" id="buy-qty-input">
+            <button type="button" class="btn btn-outline btn-sm qty-plus">+</button>
+        </div>
+        <div class="action-row">
+            <button type="button" id="detail-add-cart-btn" data-product-id="{{ product.id }}" class="btn btn-outline" {% if not product.in_stock %}disabled{% endif %}>Add to Cart</button>
+            <a href="#" id="buy-now-btn" data-product-id="{{ product.id }}" data-checkout-url="{% url 'orders:checkout' %}" class="btn btn-primary {% if not product.in_stock %}disabled{% endif %}">Buy Now</a>
+            <button class="btn btn-outline quick-wish-btn" data-product-id="{{ product.id }}">♡ Wishlist</button>
+        </div>
+        {% else %}
+            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary">Login to Purchase</a>
+        {% endif %}
+    </div>
+</div>
+
+<div style="margin-top: 40px;">
+    <h2 class="section-title">Reviews</h2>
+
+    {% if user.is_authenticated %}
+    <form action="{% url 'store:add_review' product.slug %}" method="post" class="form-card" style="margin-bottom: 24px;">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Rating</label>
+            <select name="rating">
+                <option value="5" {% if user_review.rating == 5 %}selected{% endif %}>5 - Excellent</option>
+                <option value="4" {% if user_review.rating == 4 %}selected{% endif %}>4 - Good</option>
+                <option value="3" {% if user_review.rating == 3 %}selected{% endif %}>3 - Average</option>
+                <option value="2" {% if user_review.rating == 2 %}selected{% endif %}>2 - Poor</option>
+                <option value="1" {% if user_review.rating == 1 %}selected{% endif %}>1 - Terrible</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Comment</label>
+            <textarea name="comment" rows="3">{{ user_review.comment|default:"" }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">{% if user_review %}Update Review{% else %}Submit Review{% endif %}</button>
+    </form>
+    {% endif %}
+
+    {% for review in reviews %}
+    <div class="review-item">
+        <strong>{{ review.user.username }}</strong> — <span class="review-rating">★ {{ review.rating }}</span>
+        <p>{{ review.comment }}</p>
+        <small style="color: var(--gray);">{{ review.created_at|date:"d M Y" }}</small>
+    </div>
+    {% empty %}
+    <p style="color: var(--gray);">No reviews yet. Be the first to review this product!</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

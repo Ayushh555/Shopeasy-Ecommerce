@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice — Order #{{ order.id }}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #1a1d23;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #2f6fed;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo { font-size: 24px; font-weight: 800; }
+        .logo span { color: #2f6fed; }
+        .invoice-meta { text-align: right; font-size: 13px; color: #6b7280; }
+        .invoice-meta strong { color: #1a1d23; font-size: 16px; display: block; margin-bottom: 4px; }
+
+        .section { margin-bottom: 24px; }
+        .section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; font-weight: 700; margin-bottom: 6px; }
+        .section p { font-size: 14px; line-height: 1.5; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px 12px; text-align: left; font-size: 14px; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f4f5f7; font-weight: 700; font-size: 12px; text-transform: uppercase; }
+        td.num, th.num { text-align: right; }
+
+        .totals { margin-top: 20px; margin-left: auto; width: 260px; }
+        .totals .row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; }
+        .totals .row.total { font-weight: 800; font-size: 17px; border-top: 2px solid #1a1d23; padding-top: 10px; margin-top: 6px; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: capitalize;
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .print-btn {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background: #2f6fed;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        @media print {
+            .print-btn { display: none; }
+        }
+
+        .footer-note {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="invoice-header">
+        <div class="logo">Shop<span>Easy</span></div>
+        <div class="invoice-meta">
+            <strong>Invoice #{{ order.id }}</strong>
+            {{ order.created_at|date:"d M Y, h:i A" }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-label">Status</div>
+        <span class="status-badge">{{ order.status }}</span>
+    </div>
+
+    <div class="section">
+        <div class="section-label">Billed To</div>
+        <p>{{ order.user.get_full_name|default:order.user.username }}</p>
+        <p>{{ order.user.email }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-label">Shipping Address</div>
+        <p>{{ order.shipping_address }}</p>
+        <p>{{ order.shipping_city }} {{ order.shipping_pincode }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-label">Order Items</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th class="num">Price</th>
+                    <th class="num">Qty</th>
+                    <th class="num">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td class="num">₹{{ item.price_at_purchase }}</td>
+                    <td class="num">{{ item.quantity }}</td>
+                    <td class="num">₹{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="totals">
+        <div class="row"><span>Subtotal</span><span>₹{{ order.subtotal }}</span></div>
+        {% if order.discount_amount %}
+        <div class="row"><span>Discount</span><span>-₹{{ order.discount_amount }}</span></div>
+        {% endif %}
+        <div class="row total"><span>Total</span><span>₹{{ order.total }}</span></div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+
+    <div class="footer-note">
+        Thank you for shopping with ShopEasy. This is a computer-generated invoice.
+    </div>
+
+</body>
+</html>

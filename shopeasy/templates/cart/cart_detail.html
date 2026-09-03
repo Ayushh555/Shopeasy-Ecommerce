@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Your Cart — ShopEasy{% endblock %}
+{% block content %}
+
+<h1 class="section-title">Your Cart</h1>
+
+{% if cart.items.all %}
+<table class="cart-table">
+    <thead>
+        <tr><th>Product</th><th>Price</th><th>Quantity</th><th>Subtotal</th><th></th></tr>
+    </thead>
+    <tbody>
+        {% for item in cart.items.all %}
+        <tr>
+            <td><a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a></td>
+            <td>₹{{ item.product.price }}</td>
+            <td>
+                <form action="{% url 'cart:cart_update' item.id %}" method="post" class="inline-form">
+                    {% csrf_token %}
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" style="width: 60px;" onchange="this.form.submit()">
+                </form>
+            </td>
+            <td>₹{{ item.subtotal }}</td>
+            <td>
+                <form action="{% url 'cart:cart_remove' item.id %}" method="post" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline btn-sm">Remove</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="cart-summary">
+    <div class="row"><span>Items ({{ cart.total_items }})</span><span>₹{{ cart.total }}</span></div>
+    <div class="row total"><span>Total</span><span>₹{{ cart.total }}</span></div>
+    <a href="{% url 'orders:checkout' %}" class="btn btn-primary btn-block" style="margin-top: 16px;">Proceed to Checkout</a>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <p>Your cart is empty.</p>
+    <a href="{% url 'store:product_list' %}">Continue shopping →</a>
+</div>
+{% endif %}
+
+{% endblock %}

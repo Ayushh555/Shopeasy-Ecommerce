@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}All Products — ShopEasy{% endblock %}
+{% block content %}
+
+{% if not query and not selected_category %}
+<section class="hero reveal">
+    <div class="hero-text">
+        <span class="hero-tag">New Season Drop</span>
+        <h1>Shop smarter.<br>Live better.</h1>
+        <p>Handpicked electronics, fashion, home essentials & books — all in one place.</p>
+        <a href="#product-grid-section" class="btn btn-primary hero-cta">Browse Products ↓</a>
+    </div>
+    <div class="hero-visual">
+        <div class="hero-blob"></div>
+        <div class="hero-card hero-card-1">📦 Fast Delivery</div>
+        <div class="hero-card hero-card-2">⭐ Top Rated</div>
+        <div class="hero-card hero-card-3">🔒 Secure Checkout</div>
+    </div>
+</section>
+
+{% if categories %}
+<div class="category-pills reveal">
+    <a href="?" class="pill {% if not selected_category %}active{% endif %}">All</a>
+    {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="pill {% if cat.slug == selected_category %}active{% endif %}">{{ cat.name }}</a>
+    {% endfor %}
+</div>
+
+<div class="reveal">
+    <h2 class="section-title">Shop by Category</h2>
+    <div class="category-grid">
+        {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="category-card">
+            <span class="category-icon">
+                {% if 'electronic' in cat.name|lower %}💻
+                {% elif 'fashion' in cat.name|lower %}👕
+                {% elif 'home' in cat.name|lower %}🏠
+                {% elif 'book' in cat.name|lower %}📚
+                {% else %}🛍️
+                {% endif %}
+            </span>
+            <span class="category-name">{{ cat.name }}</span>
+            <span class="category-count">{{ cat.products.count }} product{{ cat.products.count|pluralize }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if featured_products %}
+<div class="reveal">
+    <h2 class="section-title">✨ Featured Picks</h2>
+    <div class="product-grid featured-grid">
+        {% for product in featured_products %}
+        <div class="product-card featured-card" data-product-id="{{ product.id }}">
+            <a href="{{ product.get_absolute_url }}">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <div class="product-img-placeholder">No Image</div>
+                {% endif %}
+                <div class="product-card-body">
+                    <span class="product-brand">{{ product.brand|default:"—" }}</span>
+                    <span class="product-name">{{ product.name }}</span>
+                    <span class="badge featured">Featured</span>
+                    <span class="product-price">₹{{ product.price }}</span>
+                </div>
+            </a>
+            {% if product.in_stock %}
+            <div class="quick-actions">
+                {% if user.is_authenticated %}
+                <a href="{% url 'orders:checkout' %}?buy_now={{ product.id }}&qty=1" class="btn btn-primary btn-sm">Buy Now</a>
+                <button class="btn btn-outline btn-sm quick-wish-btn" data-product-id="{{ product.id }}">♡</button>
+                {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-sm btn-block">Buy Now</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<div id="product-grid-section" class="reveal">
+    <h1 class="section-title">
+        {% if query %}Results for "{{ query }}"{% else %}All Products{% endif %}
+    </h1>
+
+    <form class="filters-bar" method="get">
+        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+        <select name="category" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.slug }}" {% if cat.slug == selected_category %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="sort" onchange="this.form.submit()">
+            <option value="">Sort by</option>
+            <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+        </select>
+    </form>
+
+    {% if page_obj.object_list %}
+    <div class="product-grid">
+        {% for product in page_obj %}
+        <div class="product-card reveal-item" data-product-id="{{ product.id }}" style="animation-delay: {{ forloop.counter0|add:'0' }}0ms">
+            <a href="{{ product.get_absolute_url }}">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <div class="product-img-placeholder">No Image</div>
+                {% endif %}
+                <div class="product-card-body">
+                    <span class="product-brand">{{ product.brand|default:"—" }}</span>
+                    <span class="product-name">{{ product.name }}</span>
+                    {% if not product.in_stock %}
+                        <span class="badge out">Out of Stock</span>
+                    {% elif product.is_featured %}
+                        <span class="badge featured">Featured</span>
+                    {% endif %}
+                    <span class="product-price">₹{{ product.price }}</span>
+                </div>
+            </a>
+            {% if product.in_stock %}
+            <div class="quick-actions">
+                {% if user.is_authenticated %}
+                <a href="{% url 'orders:checkout' %}?buy_now={{ product.id }}&qty=1" class="btn btn-primary btn-sm">Buy Now</a>
+                <button class="btn btn-outline btn-sm quick-wish-btn" data-product-id="{{ product.id }}">♡</button>
+                {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-sm btn-block">Buy Now</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}&sort={{ sort }}">Prev</a>
+        {% endif %}
+        <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}&sort={{ sort }}">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <p>No products found{% if query %} for "{{ query }}"{% endif %}.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

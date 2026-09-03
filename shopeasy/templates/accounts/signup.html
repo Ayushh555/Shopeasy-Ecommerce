@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up — ShopEasy{% endblock %}
+{% block content %}
+<div class="form-card">
+    <h1>Create Account</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<small class="helptext">{{ field.help_text }}</small>{% endif %}
+            {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+    </form>
+    <p class="form-footer">Already have an account? <a href="{% url 'accounts:login' %}">Login</a></p>
+</div>
+{% endblock %}

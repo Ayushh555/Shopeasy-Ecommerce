@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ShopEasy{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{% url 'store:product_list' %}" class="logo">Shop<span>Easy</span></a>
+
+            <form class="search-form" action="{% url 'store:product_list' %}" method="get" autocomplete="off">
+                <div class="search-wrap">
+                    <input type="text" id="live-search-input" name="q" placeholder="Search products..." value="{{ query|default:'' }}">
+                    <div id="search-suggestions" class="search-suggestions"></div>
+                </div>
+                <button type="submit">Search</button>
+            </form>
+
+            <nav class="nav-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'cart:wishlist_detail' %}">Wishlist</a>
+                    <a href="{% url 'cart:cart_detail' %}">Cart <span id="cart-count">{% if cart_item_count %}({{ cart_item_count }}){% endif %}</span></a>
+                    <a href="{% url 'orders:order_list' %}">Orders</a>
+                    <form action="{% url 'accounts:logout' %}" method="post" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="link-btn">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}">Login</a>
+                    <a href="{% url 'accounts:signup' %}">Sign Up</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <div id="toast-container"></div>
+
+    <main class="container">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 ShopEasy — Built with Django 5.2</p>
+        </div>
+    </footer>
+
+    <script>
+        const CSRF_TOKEN = "{{ csrf_token }}";
+        const LIVE_SEARCH_URL = "{% url 'store:live_search' %}";
+    </script>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

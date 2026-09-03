@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Wishlist — ShopEasy{% endblock %}
+{% block content %}
+
+<h1 class="section-title">Your Wishlist</h1>
+
+{% if wishlist.products.all %}
+<div class="product-grid">
+    {% for product in wishlist.products.all %}
+    <a href="{{ product.get_absolute_url }}" class="product-card">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% else %}
+            <div class="product-img-placeholder">No Image</div>
+        {% endif %}
+        <div class="product-card-body">
+            <span class="product-brand">{{ product.brand|default:"—" }}</span>
+            <span class="product-name">{{ product.name }}</span>
+            <span class="product-price">₹{{ product.price }}</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>Your wishlist is empty.</p>
+    <a href="{% url 'store:product_list' %}">Browse products →</a>
+</div>
+{% endif %}
+
+{% endblock %}
