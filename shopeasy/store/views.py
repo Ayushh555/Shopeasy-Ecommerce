@@ -15,11 +15,26 @@ def product_list(request):
     query = request.GET.get('q', '')
     category_slug = request.GET.get('category', '')
     sort = request.GET.get('sort', '')
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    in_stock_only = request.GET.get('in_stock', '')
 
     if query:
         products = products.filter(Q(name__icontains=query) | Q(brand__icontains=query))
     if category_slug:
         products = products.filter(category__slug=category_slug)
+    if min_price:
+        try:
+            products = products.filter(price__gte=float(min_price))
+        except ValueError:
+            min_price = ''
+    if max_price:
+        try:
+            products = products.filter(price__lte=float(max_price))
+        except ValueError:
+            max_price = ''
+    if in_stock_only:
+        products = products.filter(stock__gt=0)
     if sort == 'price_low':
         products = products.order_by('price')
     elif sort == 'price_high':
@@ -38,6 +53,9 @@ def product_list(request):
         'query': query,
         'selected_category': category_slug,
         'sort': sort,
+        'min_price': min_price,
+        'max_price': max_price,
+        'in_stock_only': in_stock_only,
     }
     return render(request, 'store/product_list.html', context)
 

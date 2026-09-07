@@ -2,37 +2,78 @@
 {% block title %}My Profile — ShopEasy{% endblock %}
 {% block content %}
 
-<h1 class="section-title">My Profile</h1>
+<div class="profile-header reveal">
+    <div class="profile-avatar">{{ user.username|slice:":1"|upper }}</div>
+    <div>
+        <h1 class="section-title" style="margin-bottom: 4px;">{{ user.username }}</h1>
+        <p style="color: var(--gray); font-size: 14px;">Member since {{ stats.member_since|date:"M Y" }}</p>
+    </div>
+</div>
 
-<div class="form-card" style="margin-bottom: 30px;">
-    <h1 style="font-size: 18px;">Account Details</h1>
-    <form method="post">
-        {% csrf_token %}
-        {% for field in form %}
-        <div class="form-group">
-            <label>{{ field.label }}</label>
-            {{ field }}
+<div class="stats-grid reveal">
+    <div class="stat-card">
+        <span class="stat-icon">📦</span>
+        <span class="stat-value">{{ stats.total_orders }}</span>
+        <span class="stat-label">Total Orders</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">💰</span>
+        <span class="stat-value">₹{{ stats.total_spent }}</span>
+        <span class="stat-label">Total Spent</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">🚚</span>
+        <span class="stat-value">{{ stats.pending_orders }}</span>
+        <span class="stat-label">In Progress</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">✅</span>
+        <span class="stat-value">{{ stats.delivered_orders }}</span>
+        <span class="stat-label">Delivered</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">♡</span>
+        <span class="stat-value">{{ stats.wishlist_count }}</span>
+        <span class="stat-label">Wishlist Items</span>
+    </div>
+</div>
+
+<div class="profile-grid">
+    <div class="form-card reveal" style="margin: 0;">
+        <h2 style="font-size: 16px; margin-bottom: 16px;">Account Details</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+        </form>
+    </div>
+
+    <div class="reveal">
+        <h2 class="section-title" style="font-size: 18px;">Recent Orders</h2>
+        {% for order in orders %}
+        <div class="order-card">
+            <div style="display: flex; justify-content: space-between;">
+                <strong>Order #{{ order.id }}</strong>
+                <span class="status-badge status-{{ order.status }}">{{ order.status }}</span>
+            </div>
+            <p>₹{{ order.total }} • {{ order.created_at|date:"d M Y" }}</p>
+            <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-outline btn-sm">View Details</a>
+        </div>
+        {% empty %}
+        <div class="empty-state" style="padding: 30px 20px;">
+            <p>No orders yet.</p>
+            <a href="{% url 'store:product_list' %}">Start shopping →</a>
         </div>
         {% endfor %}
-        <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
-    </form>
-</div>
-
-<h2 class="section-title">My Orders</h2>
-{% for order in orders|slice:":5" %}
-<div class="order-card">
-    <div style="display: flex; justify-content: space-between;">
-        <strong>Order #{{ order.id }}</strong>
-        <span class="status-badge status-{{ order.status }}">{{ order.status }}</span>
+        {% if stats.total_orders > 5 %}
+        <a href="{% url 'orders:order_list' %}" class="btn btn-outline btn-block" style="margin-top: 10px;">View All Orders →</a>
+        {% endif %}
     </div>
-    <p>₹{{ order.total }} • {{ order.created_at|date:"d M Y" }}</p>
-    <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-outline btn-sm">View Details</a>
 </div>
-{% empty %}
-<p style="color: var(--gray);">No orders yet.</p>
-{% endfor %}
-{% if orders.count > 5 %}
-<a href="{% url 'orders:order_list' %}">View all orders →</a>
-{% endif %}
 
 {% endblock %}

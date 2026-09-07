@@ -102,6 +102,19 @@
             <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
             <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
         </select>
+        <div class="price-range-group">
+            <input type="number" name="min_price" placeholder="Min ₹" value="{{ min_price }}" min="0">
+            <span class="price-range-sep">–</span>
+            <input type="number" name="max_price" placeholder="Max ₹" value="{{ max_price }}" min="0">
+        </div>
+        <label class="checkbox-filter">
+            <input type="checkbox" name="in_stock" value="1" {% if in_stock_only %}checked{% endif %}>
+            In Stock Only
+        </label>
+        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+        {% if selected_category or sort or min_price or max_price or in_stock_only %}
+        <a href="?{% if query %}q={{ query }}{% endif %}" class="btn btn-outline btn-sm">Clear</a>
+        {% endif %}
     </form>
 
     {% if page_obj.object_list %}
@@ -142,11 +155,11 @@
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}&sort={{ sort }}">Prev</a>
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}&sort={{ sort }}&min_price={{ min_price }}&max_price={{ max_price }}&in_stock={{ in_stock_only }}">Prev</a>
         {% endif %}
         <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}&sort={{ sort }}">Next</a>
+            <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}&sort={{ sort }}&min_price={{ min_price }}&max_price={{ max_price }}&in_stock={{ in_stock_only }}">Next</a>
         {% endif %}
     </div>
     {% endif %}
